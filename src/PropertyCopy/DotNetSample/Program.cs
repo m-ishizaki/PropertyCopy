@@ -11,15 +11,20 @@ namespace DotNetSample
     {
         static void Main(string[] args)
         {
-            Console.WriteLine(PropertyCopier.CopyTo(new Test1()
-            {
-                MyProperty1 = 1,
-                MyProperty2 = "2",
-                MyProperty3 = 3,
-                MyProperty4 = 4,
-                MyProperty5 = 5,
-                MyProperty6 = "r"
-            }, new Test2()));
+            object result;
+            Console.WriteLine(result =
+                PropertyCopier.CopyTo(new Test1()
+                {
+                    MyProperty1 = 1,
+                    MyProperty2 = "2",
+                    MyProperty3 = 3,
+                    MyProperty4 = 4,
+                    MyProperty5 = 5,
+                    MyProperty6 = "r",
+                    MyProperty7 = "123",
+                    MyProperty8 = new int[] { 123, 456, 789 },
+                    MyProperty9 = new int[] { 123, 456, 789 },
+                }, new Test2()));
 
             Console.ReadKey();
         }
@@ -34,6 +39,8 @@ namespace DotNetSample
         public int? MyProperty5 { get; set; }
         public string MyProperty6 { get; set; }
         public string MyProperty7 { get; set; }
+        public int[] MyProperty8 { get; set; }
+        public int[] MyProperty9 { get; set; }
     }
 
     class Test2
@@ -45,10 +52,22 @@ namespace DotNetSample
         public int MyProperty5 { get; set; }
         public int MyProperty6 { get; set; }
         public int MyProperty7 { get; set; }
+        public long[] MyProperty8 { get; set; }
+        public IEnumerable<long> MyProperty9 { get; set; }
 
         public override string ToString()
         {
-            return string.Join(Environment.NewLine, new[] { $"{nameof(MyProperty1)}:{MyProperty1}", $"{nameof(MyProperty2)}:{MyProperty2}", $"{nameof(MyProperty3)}:{MyProperty3}", $"{nameof(MyProperty4)}:{MyProperty4}", $"{nameof(MyProperty5)}:{MyProperty5}", $"{nameof(MyProperty6)}:{MyProperty6}", $"{nameof(MyProperty7)}:{MyProperty7}" });
+            return string.Join(Environment.NewLine, new[] {
+                $"{nameof(MyProperty1)}:{MyProperty1}",
+                $"{nameof(MyProperty2)}:{MyProperty2}",
+                $"{nameof(MyProperty3)}:{MyProperty3}",
+                $"{nameof(MyProperty4)}:{MyProperty4}",
+                $"{nameof(MyProperty5)}:{MyProperty5}",
+                $"{nameof(MyProperty6)}:{MyProperty6}",
+                $"{nameof(MyProperty7)}:{MyProperty7}",
+                $"{nameof(MyProperty8)}:{MyProperty8}",
+                $"{nameof(MyProperty9)}:{MyProperty9}",
+            });
         }
     }
 

@@ -18,7 +18,7 @@ namespace Rksoftware.PropertyCopy
             foreach (var property in properties)
             {
                 var srcValue = property.p1.GetValue(src);
-                if(srcValue == null)
+                if (srcValue == null)
                 {
                     property.p2.SetValue(dest, null);
                     continue;
@@ -53,6 +53,14 @@ namespace Rksoftware.PropertyCopy
             if (destType == typeof(sbyte) || destType == typeof(sbyte?)) return Convert.ToSByte(srcValue);
             if (destType == typeof(byte) || destType == typeof(byte?)) return Convert.ToSingle(srcValue);
 
+            if (destType.IsArray && srcValue.GetType().IsArray)
+            {
+                var src = ((Array)srcValue).OfType<object>();
+                var dest = Array.CreateInstance(destType.GetElementType(), src.Count());
+                foreach (var i in Enumerable.Range(0, src.Count()))
+                    dest.SetValue(ConvertUnmatchTypeValue(destType, src.Skip(i).First()), i);
+                return dest;
+            }
             return srcValue;
         }
 
