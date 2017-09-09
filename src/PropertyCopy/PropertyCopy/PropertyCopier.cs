@@ -25,6 +25,11 @@ namespace Rksoftware.PropertyCopy
                 }
                 if (property.p1.PropertyType == property.p2.PropertyType)
                 {
+                    if (srcValue is ICloneable c)
+                    {
+                        property.p2.SetValue(dest, c.Clone());
+                        continue;
+                    }
                     property.p2.SetValue(dest, srcValue);
                     continue;
                 }
@@ -40,6 +45,8 @@ namespace Rksoftware.PropertyCopy
 
         private static object ConvertUnmatchTypeValue(Type destType, object srcValue)
         {
+            if (srcValue == null) return null;
+
             if (destType == typeof(string)) return Convert.ToString(srcValue);
             if (destType == typeof(bool) || destType == typeof(bool?)) return Convert.ToBoolean(srcValue);
             if (destType == typeof(short) || destType == typeof(short?)) return Convert.ToInt16(srcValue);
@@ -53,15 +60,74 @@ namespace Rksoftware.PropertyCopy
             if (destType == typeof(sbyte) || destType == typeof(sbyte?)) return Convert.ToSByte(srcValue);
             if (destType == typeof(byte) || destType == typeof(byte?)) return Convert.ToSingle(srcValue);
 
-            if (destType.IsArray && srcValue.GetType().IsArray)
+            if (srcValue.GetType().IsSubclassOf(destType))
             {
-                var src = ((Array)srcValue).OfType<object>();
-                var dest = Array.CreateInstance(destType.GetElementType(), src.Count());
-                foreach (var i in Enumerable.Range(0, src.Count()))
-                    dest.SetValue(ConvertUnmatchTypeValue(destType, src.Skip(i).First()), i);
-                return dest;
+                return srcValue is ICloneable c ? c.Clone() : srcValue;
             }
-            return srcValue;
+
+            if (srcValue.GetType().GetInterfaces().Any(m => m == destType))
+            {
+                return srcValue is ICloneable c ? c.Clone() : srcValue;
+            }
+
+            if (destType.IsArray)
+            {
+                var src = (srcValue as System.Collections.IEnumerable)?.OfType<object>().ToArray();
+                if (src != null)
+                {
+                    var dest = Array.CreateInstance(destType.GetElementType(), src.Length);
+                    foreach (var i in Enumerable.Range(0, src.Length))
+                        dest.SetValue(ConvertUnmatchTypeValue(destType, src[i]), i);
+                    return dest;
+                }
+            }
+            if (destType.IsClass)
+            {
+                var destGenericArgs = destType.GetGenericArguments();
+                if (destGenericArgs.Any())
+                {
+                    var collectionType = typeof(ICollection<>);
+                    var gt = collectionType.MakeGenericType(destGenericArgs[0]);
+                    if (destType.GetInterfaces().Any(m => m == gt))
+                    {
+                        var src = (srcValue as System.Collections.IEnumerable);
+                        if (src == null) src = new object[] { srcValue };
+                        {
+                            var dest = Activator.CreateInstance(destType);
+                            var add = dest.GetType().GetMethod("Add");
+                            foreach (var srcMember in src)
+                            {
+                                add.Invoke(dest, new[] { ConvertUnmatchTypeValue(destGenericArgs[0], srcMember) });
+                            }
+                            return dest;
+                        }
+                    }
+                }
+            }
+            if (destType.IsInterface)
+            {
+                var destGenericArgs = destType.GetGenericArguments();
+                if (destGenericArgs.Any())
+                {
+                    var listType = typeof(List<>);
+                    var listGenericType = listType.MakeGenericType(destGenericArgs[0]);
+                    if (listGenericType.GetInterfaces().Any(m => m == destType))
+                    {
+                        var src = (srcValue as System.Collections.IEnumerable);
+                        if (src == null) src = new object[] { srcValue };
+                        {
+                            var dest = Activator.CreateInstance(listGenericType);
+                            var add = dest.GetType().GetMethod("Add");
+                            foreach (var srcMember in src)
+                            {
+                                add.Invoke(dest, new[] { ConvertUnmatchTypeValue(destGenericArgs[0], srcMember) });
+                            }
+                            return dest;
+                        }
+                    }
+                }
+            }
+            { return srcValue is ICloneable c ? c.Clone() : srcValue; }
         }
 
         private static IEnumerable<PropertyInfo> GetPublicProperties(object obj)

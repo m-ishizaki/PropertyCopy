@@ -23,7 +23,8 @@ namespace DotNetSample
                     MyProperty6 = "r",
                     MyProperty7 = "123",
                     MyProperty8 = new int[] { 123, 456, 789 },
-                    MyProperty9 = new int[] { 123, 456, 789 },
+                    MyProperty9 = new List<int>() { 123, 456, 789 },
+                    MyProperty10 = new List<int>() { 123, 456, 789 },
                 }, new Test2()));
 
             Console.ReadKey();
@@ -40,7 +41,8 @@ namespace DotNetSample
         public string MyProperty6 { get; set; }
         public string MyProperty7 { get; set; }
         public int[] MyProperty8 { get; set; }
-        public int[] MyProperty9 { get; set; }
+        public List<int> MyProperty9 { get; set; }
+        public List<int> MyProperty10 { get; set; }
     }
 
     class Test2
@@ -53,7 +55,8 @@ namespace DotNetSample
         public int MyProperty6 { get; set; }
         public int MyProperty7 { get; set; }
         public long[] MyProperty8 { get; set; }
-        public IEnumerable<long> MyProperty9 { get; set; }
+        public List<long> MyProperty9 { get; set; }
+        public IEnumerable<int> MyProperty10 { get; set; }
 
         public override string ToString()
         {
@@ -67,8 +70,8 @@ namespace DotNetSample
                 $"{nameof(MyProperty7)}:{MyProperty7}",
                 $"{nameof(MyProperty8)}:{MyProperty8}",
                 $"{nameof(MyProperty9)}:{MyProperty9}",
+                $"{nameof(MyProperty10)}:{MyProperty10}",
             });
         }
     }
-
 }
